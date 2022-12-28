@@ -12,15 +12,6 @@ static const char col_gray2[]       = "#444444";
 static const char col_gray3[]       = "#bbbbbb";
 static const char col_gray4[]       = "#eeeeee";
 static const char col_cyan[]        = "#005577";
-/* custom var */
-static int gappi = 12;
-static int gappo = 12;
-static const int _gappo = 12;
-static const int _gappi = 12;
-static int resize_size = 15;
-static int move_size = 15;
-static const char *autostartscriptpath = "~/scripts/dwm_start.sh";
-
 static const char *colors[][3]      = {
 	/*               fg         bg         border   */
 	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
@@ -53,8 +44,8 @@ static const Layout layouts[] = {
 	{ "[M]",      monocle },
 };
 
-/* key definitions  Mod1Mask = alt */
-#define MODKEY Mod1Mask 
+/* key definitions */
+#define MODKEY Mod1Mask
 #define TAGKEYS(KEY,TAG) \
 	{ MODKEY,                       KEY,      view,           {.ui = 1 << TAG} }, \
 	{ MODKEY|ControlMask,           KEY,      toggleview,     {.ui = 1 << TAG} }, \
@@ -67,56 +58,33 @@ static const Layout layouts[] = {
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
-static const char *termcmd[]  = { "konsole", NULL };
+static const char *termcmd[]  = { "st", NULL };
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
-	{ ControlMask,                  XK_space,  spawn,          {.v = dmenucmd } },
+	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
 	{ MODKEY|ShiftMask,             XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
-	{ MODKEY,                       XK_h,      focusstack,     {.i = +1 } },
-	{ MODKEY,                       XK_l,      focusstack,     {.i = -1 } },
+	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
+	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
 	{ MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },
 	{ MODKEY,                       XK_d,      incnmaster,     {.i = -1 } },
-	{ MODKEY,                       XK_k,      setmfact,       {.f = -0.05} },
-	{ MODKEY,                       XK_j,      setmfact,       {.f = +0.05} },
+	{ MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
+	{ MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
 	{ MODKEY,                       XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
 	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
 	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
 	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
 	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
-  	{ MODKEY,                       XK_s,      setlayout,      {0} },
-	// { MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },
+	{ MODKEY,                       XK_space,  setlayout,      {0} },
+	{ MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },
 	{ MODKEY,                       XK_0,      view,           {.ui = ~0 } },
 	{ MODKEY|ShiftMask,             XK_0,      tag,            {.ui = ~0 } },
 	{ MODKEY,                       XK_comma,  focusmon,       {.i = -1 } },
 	{ MODKEY,                       XK_period, focusmon,       {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_comma,  tagmon,         {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_period, tagmon,         {.i = +1 } },
-	// { MODKEY|ControlMask,           XK_Up,     movewin,        {.ui = UP } },
-	{ MODKEY|ShiftMask,  			XK_equal,  set_size,         {.i = +15} },               
-  { MODKEY|ShiftMask,  			  XK_minus,  set_size,         {.i = -15} }, 
-	{ MODKEY|ShiftMask,  			  XK_space,  set_size,         {.i = 0} },
-
-	{ MODKEY|ControlMask,  			XK_equal,  setgap,         {.i = +6} },               /* super ctrl +       |  gap增大 */
-	{ MODKEY|ControlMask,  			XK_minus,  setgap,         {.i = -6} },               /* super ctrl -       |  gap减小 */
-	{ MODKEY|ControlMask,  			XK_space,  setgap,         {.i = 0} },
-
-    { MODKEY|ControlMask,  			XK_Up,     movewin,        {.ui = UP} },              /* super ctrl up      |  移动窗口 */
-    { MODKEY|ControlMask,  			XK_Down,   movewin,        {.ui = DOWN} },            /* super ctrl down    |  移动窗口 */
-    { MODKEY|ControlMask,  			XK_Left,   movewin,        {.ui = LEFT} },            /* super ctrl left    |  移动窗口 */
-    { MODKEY|ControlMask,  			XK_Right,  movewin,        {.ui = RIGHT} },           /* super ctrl right   |  移动窗口 */
-
-    { MODKEY|ShiftMask,     		XK_Up,     resizewin,      {.ui = V_REDUCE} },        /* super alt up       |  调整窗口 */
-    { MODKEY|ShiftMask,    			XK_Down,   resizewin,      {.ui = V_EXPAND} },        /* super alt down     |  调整窗口 */
-    { MODKEY|ShiftMask,     		XK_Left,   resizewin,      {.ui = H_REDUCE} },        /* super alt left     |  调整窗口 */
-    { MODKEY|ShiftMask,     		XK_Right,  resizewin,      {.ui = H_EXPAND} },            /* super ctrl space   |  窗口重置 */
-
-
-    { MODKEY,                   XK_h,      hidewin,        {0} },
-    { MODKEY|ShiftMask,         XK_h,      restorewin,     {0} }, 
-
 	TAGKEYS(                        XK_1,                      0)
 	TAGKEYS(                        XK_2,                      1)
 	TAGKEYS(                        XK_3,                      2)
