@@ -280,6 +280,7 @@ static void hide(Client *c);
 static void show(Client *c);
 static void hidewin(const Arg *arg);
 static void restorewin(const Arg *arg);
+static void toggleallfloating(const Arg *arg);
 
 /* variables */
 static const char broken[] = "broken";
@@ -1212,30 +1213,27 @@ void hide(Client *c) {
   arrange(c->mon);
 }
 
-void
-show(Client *c)
-{
-    if (!c || !HIDDEN(c))
-        return;
+void show(Client *c) {
+  if (!c || !HIDDEN(c))
+    return;
 
-    XMapWindow(dpy, c->win);
-    setclientstate(c, NormalState);
-    hiddenWinStackTop--;
-    arrange(c->mon);
+  XMapWindow(dpy, c->win);
+  setclientstate(c, NormalState);
+  hiddenWinStackTop--;
+  arrange(c->mon);
 }
 
-void
-restorewin(const Arg *arg) {
-    int i = hiddenWinStackTop;
-    while (i > -1) {
-        if (HIDDEN(hiddenWinStack[i]) && ISVISIBLE(hiddenWinStack[i])) {
-            show(hiddenWinStack[i]);
-            focus(hiddenWinStack[i]);
-            restack(selmon);
-            return;
-        }
-        --i;
+void restorewin(const Arg *arg) {
+  int i = hiddenWinStackTop;
+  while (i > -1) {
+    if (HIDDEN(hiddenWinStack[i]) && ISVISIBLE(hiddenWinStack[i])) {
+      show(hiddenWinStack[i]);
+      focus(hiddenWinStack[i]);
+      restack(selmon);
+      return;
     }
+    --i;
+  }
 }
 void hidewin(const Arg *arg) {
   if (!selmon->sel)
@@ -1664,8 +1662,11 @@ void sigchld(int unused) {
 }
 
 void spawn(const Arg *arg) {
-  if (arg->v == dmenucmd)
-    dmenumon[0] = '0' + selmon->num;
+  if (selmon->sel &&
+      selmon->sel->isfullscreen) /* no support spawning while fullscreen */
+    return;
+  // if (arg->v == dmenucmd)
+  //   dmenumon[0] = '0' + selmon->num;
   if (fork() == 0) {
     if (dpy)
       close(ConnectionNumber(dpy));
@@ -1749,6 +1750,34 @@ void togglefloating(const Arg *arg) {
   arrange(selmon);
 }
 
+void toggleallfloating(const Arg *arg) {
+  Client *c = NULL;
+  int somefloating = 0;
+
+  if (!selmon->sel || selmon->sel->isfullscreen)
+    return;
+
+  for (c = selmon->clients; c; c = c->next)
+    if (ISVISIBLE(c) && !HIDDEN(c) && c->isfloating) {
+      somefloating = 1;
+      break;
+    }
+
+  if (somefloating) {
+    for (c = selmon->clients; c; c = c->next)
+      if (ISVISIBLE(c) && !HIDDEN(c))
+        c->isfloating = 0;
+    arrange(selmon);
+  } else {
+    for (c = selmon->clients; c; c = c->next)
+      if (ISVISIBLE(c) && !HIDDEN(c)) {
+        c->isfloating = 1;
+        resize(c, c->x + 2 * snap, c->y + 2 * snap, MAX(c->w - 4 * snap, snap),
+               MAX(c->h - 4 * snap, snap), 0);
+      }
+  }
+  pointerfocuswin(selmon->sel);
+}
 void toggletag(const Arg *arg) {
   unsigned int newtags;
 
@@ -2116,8 +2145,8 @@ void setgap(const Arg *arg) {
 }
 
 void set_size(const Arg *arg) {
-  resize_size = arg->i ? MAX(resize_size + arg->i, 0) : 15;
-  move_size = arg->i ? MAX(move_size + arg->i, 0) : 15;
+  resize_size = arg->i ? MAX(resize_size + arg->i, 0) : 30;
+  move_size = arg->i ? MAX(move_size + arg->i, 0) : 30;
 }
 
 void pointerfocuswin(Client *c) {
