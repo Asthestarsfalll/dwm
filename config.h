@@ -17,8 +17,8 @@ static int gappi = 12;
 static int gappo = 12;
 static const int _gappo = 12;
 static const int _gappi = 12;
-static int resize_size = 30;
-static int move_size = 30;
+static int resize_size = 15;
+static int move_size = 15;
 static const char *autostartscriptpath = "~/scripts/dwm_start.sh";
 
 static const char *colors[][3]      = {
